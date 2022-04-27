@@ -1,4 +1,4 @@
-package com.november.bluetoothdemo;
+package com.november.bluetoothdemo.ui;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -16,6 +16,14 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.november.bluetoothdemo.BluetoothMonitorCallBack;
+import com.november.bluetoothdemo.BluetoothMonitorReceiver;
+import com.november.bluetoothdemo.BluetoothUtils;
+import com.november.bluetoothdemo.ConnectBlueCallBack;
+import com.november.bluetoothdemo.ConnectedOperationCallBack;
+import com.november.bluetoothdemo.ConnectedThread;
+import com.november.bluetoothdemo.R;
+
 public class MyDeviceActivity extends AppCompatActivity implements View.OnClickListener {
 
     private TextView tvWeight;
@@ -27,10 +35,16 @@ public class MyDeviceActivity extends AppCompatActivity implements View.OnClickL
     private Button btnIsConnect;
     private Button btnDisconnect;
 
+    /** 蓝牙状态监测广播 */
     private BluetoothMonitorReceiver mBluetoothMonitorReceiver = null;
+    /** 蓝牙工具类 */
     private BluetoothUtils mBluetoothUtils;
+    /** 连接线程 */
     private ConnectedThread mThread;
+    /** 蓝牙设备对象 */
     private BluetoothDevice mDevice;
+    /** 全局Application */
+    private BaseApplication mApplication;
 
     private final Handler mHandler = new Handler(Looper.myLooper()) {
         @Override
@@ -39,8 +53,8 @@ public class MyDeviceActivity extends AppCompatActivity implements View.OnClickL
             if (msg.what == 10001) {
                 String weight = (String) msg.obj;
                 tvWeight.setText(weight.trim());
-            }else if (msg.what==10002){
-                mDevice= (BluetoothDevice) msg.obj;
+            } else if (msg.what == 10002) {
+                mDevice = (BluetoothDevice) msg.obj;
             }
         }
     };
@@ -54,6 +68,8 @@ public class MyDeviceActivity extends AppCompatActivity implements View.OnClickL
     }
 
     private void initView() {
+        mApplication = (BaseApplication) getApplication();
+
         tvWeight = (TextView) findViewById(R.id.tv_weight);
         btnStartConnected = (Button) findViewById(R.id.btn_start_connected);
         btnAddressConnected = (Button) findViewById(R.id.btn_address_connected);
@@ -100,7 +116,7 @@ public class MyDeviceActivity extends AppCompatActivity implements View.OnClickL
                 startConnected();
                 break;
             case R.id.btn_address_connected:
-                mBluetoothUtils.connectMAC("DC:0D:30:12:E7:C4", new ConnectBlueCallBack() {
+                mBluetoothUtils.connectMAC(mDevice.getAddress(), new ConnectBlueCallBack() {
                     @Override
                     public void onStartConnect() {
                         Toast.makeText(MyDeviceActivity.this, "开始连接！", Toast.LENGTH_SHORT).show();
@@ -108,6 +124,7 @@ public class MyDeviceActivity extends AppCompatActivity implements View.OnClickL
 
                     @Override
                     public void onConnectSuccess(BluetoothDevice device, BluetoothSocket socket) {
+                        mApplication.setBluetoothSocket(socket);
                         Message message = new Message();
                         message.what = 10002;
                         message.obj = device;
@@ -144,7 +161,7 @@ public class MyDeviceActivity extends AppCompatActivity implements View.OnClickL
                 }
                 break;
             case R.id.btn_is_connect:
-                if (mBluetoothUtils.isConnectBlue(mDevice)) {
+                if (mBluetoothUtils.isConnectBlue(mApplication.getBluetoothSocket())) {
                     Toast.makeText(this, "已连接！", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(this, "未连接！", Toast.LENGTH_SHORT).show();
@@ -154,7 +171,6 @@ public class MyDeviceActivity extends AppCompatActivity implements View.OnClickL
                 if (null != mThread) {
                     mThread.cancel();
                 }
-                mBluetoothUtils.cancelConnect(mDevice);
                 break;
         }
     }
@@ -177,6 +193,7 @@ public class MyDeviceActivity extends AppCompatActivity implements View.OnClickL
 
             @Override
             public void onConnectSuccess(BluetoothDevice device, BluetoothSocket socket) {
+                mApplication.setBluetoothSocket(socket);
                 initThread(socket);
                 Toast.makeText(MyDeviceActivity.this, "连接成功！", Toast.LENGTH_SHORT).show();
             }

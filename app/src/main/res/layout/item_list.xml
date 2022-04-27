@@ -5,28 +5,38 @@
     android:paddingHorizontal="15dp"
     android:paddingVertical="10dp">
 
+    <ImageView
+        android:id="@+id/iv_image"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_centerVertical="true" />
+
     <TextView
         android:id="@+id/tv_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="15sp"
-        android:text="name"/>
+        android:layout_marginStart="@dimen/dp_10"
+        android:layout_toEndOf="@id/iv_image"
+        android:text="name"
+        android:textSize="15sp" />
 
     <TextView
         android:id="@+id/tv_mac"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@id/tv_name"
+        android:layout_marginStart="@dimen/dp_10"
         android:layout_marginTop="5dp"
-        android:textSize="15sp"
+        android:layout_toEndOf="@id/iv_image"
         android:text="mac"
-        android:layout_below="@id/tv_name"/>
+        android:textSize="15sp" />
 
     <TextView
         android:id="@+id/tv_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
-        android:text="未配对"
-        android:layout_alignParentEnd="true"/>
+        android:text="未配对" />
 
 </RelativeLayout>

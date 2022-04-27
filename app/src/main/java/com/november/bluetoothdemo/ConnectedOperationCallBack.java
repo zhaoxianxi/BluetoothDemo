@@ -12,20 +12,25 @@ public interface ConnectedOperationCallBack {
      *
      * @param content 内容
      */
-    void onReadSuccess(String content);
+    default void onReadSuccess(String content) {
+    }
 
     /**
      * 读取失败
      */
-    void onReadFile();
+    default void onReadFile() {
+    }
 
     /**
      * 写入成功
      */
-    void onWriteSuccess();
+    default void onWriteSuccess() {
+    }
 
     /**
      * 写入失败
      */
-    void onWriteFile();
+    default void onWriteFile() {
+    }
+
 }

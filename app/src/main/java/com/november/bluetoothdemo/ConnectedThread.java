@@ -21,8 +21,8 @@ public class ConnectedThread extends Thread {
     private ConnectedOperationCallBack mOperationCallBack;
     private boolean isRead = true;
 
-    public ConnectedThread(BluetoothSocket mBluetoothSocket, ConnectedOperationCallBack callBack) {
-        this.mBluetoothSocket = mBluetoothSocket;
+    public ConnectedThread(BluetoothSocket bluetoothSocket, ConnectedOperationCallBack callBack) {
+        this.mBluetoothSocket = bluetoothSocket;
         this.mOperationCallBack = callBack;
         InputStream tmpIn = null;
         OutputStream tmpOut = null;
@@ -37,18 +37,15 @@ public class ConnectedThread extends Thread {
     }
 
     public void run() {
-        byte[] buffer = new byte[320];
+        byte[] buffer = new byte[1024];
         int bytes = 0;
 
         //监听输入流以备获取数据
         while (isRead) {
             try {
                 bytes = mInputStream.read(buffer);
-                Log.e("Buffer", Arrays.toString(buffer));
-                Log.e("BufferSize", "size:" + buffer.length);
                 if (bytes != -1) {
                     String string = new String(buffer, 0, bytes, "utf-8");
-                    Log.e("BYTES", string);
                     if (null != mOperationCallBack) {
                         mOperationCallBack.onReadSuccess(string.substring(0, 7));
                     }

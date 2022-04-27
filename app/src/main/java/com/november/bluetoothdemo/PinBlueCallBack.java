@@ -5,17 +5,18 @@ import android.bluetooth.BluetoothDevice;
 /**
  * author November
  * time 2022/3/11 10:59
- * desc 广播接收接口
+ * desc 配对结果广播接收接口
  */
 public interface PinBlueCallBack {
 
     /**
      * 配对请求
      */
-    void onBondRequest();
+    default void onBondRequest() {
+    }
 
     /**
-     * 取消配对
+     * 取消配对/配对失败
      *
      * @param device
      */
@@ -26,7 +27,8 @@ public interface PinBlueCallBack {
      *
      * @param device
      */
-    void onBonding(BluetoothDevice device);
+    default void onBonding(BluetoothDevice device) {
+    }
 
     /**
      * 配对成功

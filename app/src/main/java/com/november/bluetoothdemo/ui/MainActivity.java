@@ -1,4 +1,4 @@
-package com.november.bluetoothdemo;
+package com.november.bluetoothdemo.ui;
 
 import android.Manifest;
 import android.animation.ObjectAnimator;
@@ -25,6 +25,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.listener.OnItemClickListener;
 import com.chad.library.adapter.base.viewholder.BaseViewHolder;
+import com.november.bluetoothdemo.BluetoothTypeUtils;
+import com.november.bluetoothdemo.BluetoothUtils;
+import com.november.bluetoothdemo.PinBlueCallBack;
+import com.november.bluetoothdemo.PinBlueReceiver;
+import com.november.bluetoothdemo.R;
+import com.november.bluetoothdemo.ScanBlueCallBack;
+import com.november.bluetoothdemo.ScanBlueReceiver;
 import com.permissionx.guolindev.PermissionX;
 
 import org.jetbrains.annotations.NotNull;
@@ -59,10 +66,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
+        initReceiver();
     }
 
     private void initView() {
-
         btnIsSupport = (Button) findViewById(R.id.btn_is_support);
         btnOpenAsync = (Button) findViewById(R.id.btn_open_asyn);
         btnOpenSync = (Button) findViewById(R.id.btn_open_sync);
@@ -79,75 +86,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mAnimator = rotation(ivRefresh);
         mBluetoothUtils = new BluetoothUtils();
 
-        mScanBlueReceiver = new ScanBlueReceiver(new ScanBlueCallBack() {
-            @Override
-            public void onScanStarted() {
-                Toast.makeText(MainActivity.this, "开始扫描！", Toast.LENGTH_SHORT).show();
-                mAnimator.start();
-                if (mList.size() > 0) {
-                    mList.clear();
-                }
-            }
-
-            @Override
-            public void onScanFinished() {
-                mAnimator.pause();
-            }
-
-            @Override
-            public void onScanning(BluetoothDevice bluetoothDevice) {
-                Log.e("BluetoothDevice", bluetoothDevice.getName() + "---" + bluetoothDevice.getAddress());
-                if (TextUtils.isEmpty(bluetoothDevice.getName()) || TextUtils.isEmpty(bluetoothDevice.getAddress())) {
-                    return;
-                }
-                for (BluetoothDevice device : mList) {
-                    if (device.getAddress().equals(bluetoothDevice.getAddress())) {
-                        return;
-                    }
-                }
-                Log.e("DeviceType",bluetoothDevice.getName()+"---"+bluetoothDevice.getBluetoothClass().getDeviceClass());
-                mList.add(bluetoothDevice);
-                mAdapter.notifyDataSetChanged();
-            }
-        });
-        mPinBlueReceiver = new PinBlueReceiver(new PinBlueCallBack() {
-            @Override
-            public void onBondRequest() {
-                Toast.makeText(MainActivity.this, "开始配对！", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onBondFail(BluetoothDevice device) {
-                Toast.makeText(MainActivity.this, "取消配对！", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onBonding(BluetoothDevice device) {
-                Toast.makeText(MainActivity.this, "配对中...", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onBondSuccess(BluetoothDevice device) {
-                Toast.makeText(MainActivity.this, "配对成功！", Toast.LENGTH_SHORT).show();
-            }
-        });
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
-        intentFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        intentFilter.addAction(BluetoothDevice.ACTION_FOUND);
-        registerReceiver(mScanBlueReceiver, intentFilter);
-
-        IntentFilter pinFilter = new IntentFilter();
-        pinFilter.addAction(BluetoothDevice.ACTION_PAIRING_REQUEST);
-        pinFilter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-        registerReceiver(mPinBlueReceiver, pinFilter);
-
         mAdapter = new BaseQuickAdapter<BluetoothDevice, BaseViewHolder>(R.layout.item_list, mList) {
             @Override
             protected void convert(@NotNull BaseViewHolder holder, BluetoothDevice item) {
                 holder.setText(R.id.tv_name, TextUtils.isEmpty(item.getName()) ? "未知设备" : item.getName());
                 holder.setText(R.id.tv_mac, item.getAddress());
                 holder.setText(R.id.tv_status, item.getBondState() == BluetoothDevice.BOND_BONDED ? "已配对" : "未配对");
+                holder.setImageResource(R.id.iv_image, BluetoothTypeUtils.getDeviceType(item.getBluetoothClass()));
             }
         };
         rvList.setLayoutManager(new LinearLayoutManager(this));
@@ -166,6 +111,84 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
         });
+    }
+
+    /**
+     * 初始化广播
+     */
+    private void initReceiver() {
+        mScanBlueReceiver = new ScanBlueReceiver(new ScanBlueCallBack() {
+            @Override
+            public void onScanStarted() {
+                Toast.makeText(MainActivity.this, "开始扫描！", Toast.LENGTH_SHORT).show();
+                mAnimator.start();
+                if (mList.size() > 0) {
+                    mList.clear();
+                }
+            }
+
+            @Override
+            public void onScanFinished() {
+                mAnimator.pause();
+                Log.e("BondedDevices", mBluetoothUtils.getBondedDevices().size() + " " + mBluetoothUtils.getBondedDevices().get(0).getName());
+            }
+
+            @Override
+            public void onScanning(BluetoothDevice bluetoothDevice) {
+                Log.e("BluetoothDevice", bluetoothDevice.getName() + "---" + bluetoothDevice.getAddress());
+                if (TextUtils.isEmpty(bluetoothDevice.getName()) || TextUtils.isEmpty(bluetoothDevice.getAddress())) {
+                    return;
+                }
+                for (BluetoothDevice device : mList) {
+                    if (device.getAddress().equals(bluetoothDevice.getAddress())) {
+                        return;
+                    }
+                }
+                Log.e("DeviceType", bluetoothDevice.getName() + "---" + bluetoothDevice.getBluetoothClass().getDeviceClass());
+                mList.add(bluetoothDevice);
+                mAdapter.notifyDataSetChanged();
+            }
+        });
+        IntentFilter intentFilter = new IntentFilter();
+        //开始扫描设备
+        intentFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
+        //结束扫描
+        intentFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+        //发现蓝牙设备
+        intentFilter.addAction(BluetoothDevice.ACTION_FOUND);
+        registerReceiver(mScanBlueReceiver, intentFilter);
+
+        mPinBlueReceiver = new PinBlueReceiver(new PinBlueCallBack() {
+            @Override
+            public void onBondRequest() {
+                Toast.makeText(MainActivity.this, "开始配对！", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onBondFail(BluetoothDevice device) {
+                Toast.makeText(MainActivity.this, "配对失败！", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onBonding(BluetoothDevice device) {
+                Toast.makeText(MainActivity.this, "配对中...", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onBondSuccess(BluetoothDevice device) {
+                Toast.makeText(MainActivity.this, "配对成功！", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MainActivity.this, MyDeviceActivity.class);
+                intent.putExtra("device", device);
+                startActivity(intent);
+            }
+        });
+
+        IntentFilter pinFilter = new IntentFilter();
+        //配对请求
+        pinFilter.addAction(BluetoothDevice.ACTION_PAIRING_REQUEST);
+        //配对状态变化
+        pinFilter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+        registerReceiver(mPinBlueReceiver, pinFilter);
     }
 
     @Override
@@ -212,7 +235,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Manifest.permission.ACCESS_FINE_LOCATION).request((allGranted, grantedList, deniedList) -> {
             if (allGranted) {
                 if (!mBluetoothUtils.scanBlue()) {
-                    Toast.makeText(this, "搜索异常！", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "搜索异常，请检查定位权限！", Toast.LENGTH_SHORT).show();
                 }
             }
         });

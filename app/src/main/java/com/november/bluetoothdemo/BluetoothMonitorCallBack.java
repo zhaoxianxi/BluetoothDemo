@@ -24,9 +24,11 @@ public interface BluetoothMonitorCallBack {
     }
 
     /** 设备已连接 */
-    void onConnected();
+    default void onConnected() {
+    }
 
     /** 设备已断开 */
-    void onDisconnected();
+    default void onDisconnected() {
+    }
 
 }

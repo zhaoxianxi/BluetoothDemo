@@ -15,10 +15,10 @@ import java.lang.reflect.Method;
  */
 public class PinBlueReceiver extends BroadcastReceiver {
 
-    /** 此处为要连接设备的初始秘钥，一般为1234或0000 */
-    private String pin = "1234";
-
     private static final String TAG = PinBlueReceiver.class.getSimpleName();
+
+    /** 此处为要连接设备的初始秘钥，一般为1234或0000 */
+    private final String pin = "1234";
 
     private PinBlueCallBack callBack;
 
@@ -55,7 +55,7 @@ public class PinBlueReceiver extends BroadcastReceiver {
                     Log.d(TAG, "配对成功！");
                     callBack.onBondSuccess(device);
                     break;
-                default:
+                case BluetoothDevice.BOND_NONE:
                     Log.d(TAG, "配对失败！");
                     callBack.onBondFail(device);
                     break;

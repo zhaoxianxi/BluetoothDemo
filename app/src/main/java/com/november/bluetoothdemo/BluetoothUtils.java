@@ -5,10 +5,13 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -68,8 +71,20 @@ public class BluetoothUtils {
     }
 
     /**
+     * 获取已经配对的蓝牙对象
+     *
+     * @return
+     */
+    public List<BluetoothDevice> getBondedDevices() {
+        if (!isBlueEnable()) {
+            return null;
+        }
+        return new ArrayList<>(mBluetoothAdapter.getBondedDevices());
+    }
+
+    /**
      * 扫描方法
-     * 通过接收广播扫描设备
+     * 通过接收广播获取到扫描结果
      *
      * @return
      */
@@ -94,7 +109,7 @@ public class BluetoothUtils {
      * @return
      */
     public boolean cancelScanBlue() {
-        if (isSupportBlue()) {
+        if (isBlueEnable()) {
             return mBluetoothAdapter.cancelDiscovery();
         }
         return true;
@@ -187,38 +202,27 @@ public class BluetoothUtils {
      *
      * @return
      */
-    public boolean isConnectBlue(BluetoothDevice device) {
-        BluetoothSocket mBluetoothSocket = null;
-        try {
-            mBluetoothSocket = device.createRfcommSocketToServiceRecord(MY_UUID_SECURE);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return mBluetoothSocket != null && mBluetoothSocket.isConnected();
+    public boolean isConnectBlue(BluetoothSocket socket) {
+        return socket != null && socket.isConnected();
     }
 
     /**
      * 断开连接
      *
-     * @param device
+     * @param socket
      * @return
      */
-    public boolean cancelConnect(BluetoothDevice device) {
-        BluetoothSocket mBluetoothSocket = null;
-        try {
-            mBluetoothSocket = device.createRfcommSocketToServiceRecord(MY_UUID_SECURE);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if (mBluetoothSocket != null && mBluetoothSocket.isConnected()) {
+    public boolean cancelConnect(BluetoothSocket socket) {
+        if (socket != null && socket.isConnected()) {
             try {
-                mBluetoothSocket.close();
+                socket.getInputStream().close();
+                socket.getOutputStream().close();
+                socket.close();
             } catch (IOException e) {
                 e.printStackTrace();
                 return false;
             }
         }
-        mBluetoothSocket = null;
         return true;
     }
 
@@ -235,5 +239,17 @@ public class BluetoothUtils {
         }
         BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
         connect(device, callBack);
+    }
+
+    /**
+     * 根据MAC地址获取蓝牙对象
+     *
+     * @param address
+     */
+    public BluetoothDevice getBluetoothDevice(String address) {
+        if (TextUtils.isEmpty(address)) {
+            return null;
+        }
+        return mBluetoothAdapter.getRemoteDevice(address);
     }
 }

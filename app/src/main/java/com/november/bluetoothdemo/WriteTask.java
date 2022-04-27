@@ -34,7 +34,7 @@ public class WriteTask extends AsyncTask<String, Integer, String> {
             outputStream.write(string.getBytes());
         } catch (IOException e) {
             e.printStackTrace();
-            return "发送失败";
+            return "发送失败！";
         } finally {
             try {
                 outputStream.close();
@@ -42,7 +42,7 @@ public class WriteTask extends AsyncTask<String, Integer, String> {
                 e.printStackTrace();
             }
         }
-        return "发送成功";
+        return "发送成功！";
     }
 
     @Override
@@ -57,7 +57,7 @@ public class WriteTask extends AsyncTask<String, Integer, String> {
     protected void onPostExecute(String s) {
         Log.e(TAG, "完成写入数据！");
         if (callBack != null) {
-            if ("发送成功".equals(s)) {
+            if ("发送成功！".equals(s)) {
                 callBack.onFinished(true, s);
             } else {
                 callBack.onFinished(false, s);

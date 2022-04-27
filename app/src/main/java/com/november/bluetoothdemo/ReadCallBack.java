@@ -8,14 +8,15 @@ package com.november.bluetoothdemo;
 public interface ReadCallBack {
 
     /** 开始读取 */
-    void onStarted();
+    default void onStarted() {
+    }
 
     /**
      * 读取结果
      *
      * @param isSuccess
-     * @param hint
+     * @param content
      */
-    void onFinished(boolean isSuccess, String hint);
+    void onFinished(boolean isSuccess, String content);
 
 }

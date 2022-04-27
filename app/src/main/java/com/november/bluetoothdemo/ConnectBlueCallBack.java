@@ -11,7 +11,8 @@ import android.bluetooth.BluetoothSocket;
 public interface ConnectBlueCallBack {
 
     /** 开始连接 */
-    void onStartConnect();
+    default void onStartConnect() {
+    }
 
     /**
      * 连接成功
@@ -28,4 +29,5 @@ public interface ConnectBlueCallBack {
      * @param hint
      */
     void onConnectFail(BluetoothDevice device, String hint);
+
 }

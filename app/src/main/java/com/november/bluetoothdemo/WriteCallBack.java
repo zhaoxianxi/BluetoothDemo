@@ -8,7 +8,8 @@ package com.november.bluetoothdemo;
 public interface WriteCallBack {
 
     /** 开始写入 */
-    void onStarted();
+    default void onStarted() {
+    }
 
     /**
      * 写入结果

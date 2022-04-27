@@ -47,7 +47,7 @@ public class ReadTask extends AsyncTask<String, Integer, String> {
                 e.printStackTrace();
             }
         }
-        return "读取失败";
+        return "读取失败！";
     }
 
     @Override
@@ -61,7 +61,7 @@ public class ReadTask extends AsyncTask<String, Integer, String> {
     @Override
     protected void onPostExecute(String s) {
         Log.e(TAG, "完成读取数据！");
-        if ("读取失败".equals(s)) {
+        if ("读取失败！".equals(s)) {
             callBack.onFinished(false, s);
         } else {
             callBack.onFinished(true, s);
